@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wordle Multiplayer + Hangman</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <header>
+        <h1>WORDLE <span>+</span> HANGMAN</h1>
+    </header>
+
+    <div id="lobby-container" class="panel">
+        <h2>Enter the Arena</h2>
+        <input type="text" id="username-input" placeholder="Your Username (e.g., vuong)" autocomplete="off">
+        <button id="btn-login" class="btn primary">Connecting to Server...</button>
+
+        <div id="room-controls" style="display: none; margin-top: 20px;">
+            <button id="btn-create" class="btn primary">Create Private Room</button>
+            <div class="divider">OR</div>
+            <input type="text" id="roomcode-input" placeholder="6-Letter Code" maxlength="6" autocomplete="off">
+            <button id="btn-join" class="btn secondary">Join Room</button>
+        </div>
+    </div>
+
+    <!-- MAIN GAME LAYOUT -->
+    <div id="game-container" style="display: none;">
+
+        <div class="left-sidebar">
+            <div class="game-header">
+                <span id="room-status" class="room-badge">ROOM: --</span>
+                <div class="btn-group">
+                    <button id="btn-start" class="btn primary small">Start</button>
+                    <button id="btn-leave" class="btn secondary small">Leave</button>
+                </div>
+            </div>
+
+            <div id="hangman-container">
+                <!-- SVG Hangman -->
+                <svg viewBox="0 0 200 250" class="hangman-svg">
+                    <line x1="20" y1="230" x2="100" y2="230" class="hm-part hm-base" />
+                    <line x1="60" y1="230" x2="60" y2="20" class="hm-part hm-pole" />
+                    <line x1="60" y1="20" x2="140" y2="20" class="hm-part hm-pole" />
+                    <line x1="140" y1="20" x2="140" y2="50" class="hm-part hm-rope" />
+                    <circle cx="140" cy="70" r="20" class="hm-part hm-1" />
+                    <line x1="140" y1="90" x2="140" y2="150" class="hm-part hm-2" />
+                    <line x1="140" y1="110" x2="110" y2="140" class="hm-part hm-3" />
+                    <line x1="140" y1="110" x2="170" y2="140" class="hm-part hm-4" />
+                    <line x1="140" y1="150" x2="110" y2="200" class="hm-part hm-5" />
+                    <line x1="140" y1="150" x2="170" y2="200" class="hm-part hm-6" />
+                </svg>
+                <p id="hangman-status">0 / 6 Failed Guesses</p>
+            </div>
+        </div>
+
+        <div class="center-panel">
+            <div id="notification-toast"></div>
+
+            <div id="wordle-grid">
+                <!-- 6x5 JS Grid -->
+            </div>
+
+            <div id="keyboard">
+                <div class="keyboard-row">
+                    <button data-key="Q">Q</button><button data-key="W">W</button><button data-key="E">E</button><button
+                        data-key="R">R</button><button data-key="T">T</button><button data-key="Y">Y</button><button
+                        data-key="U">U</button><button data-key="I">I</button><button data-key="O">O</button><button
+                        data-key="P">P</button>
+                </div>
+                <div class="keyboard-row">
+                    <div class="spacer half"></div><button data-key="A">A</button><button data-key="S">S</button><button
+                        data-key="D">D</button><button data-key="F">F</button><button data-key="G">G</button><button
+                        data-key="H">H</button><button data-key="J">J</button><button data-key="K">K</button><button
+                        data-key="L">L</button>
+                    <div class="spacer half"></div>
+                </div>
+                <div class="keyboard-row">
+                    <button data-key="ENTER" class="wide-key">ENTER</button><button data-key="Z">Z</button><button
+                        data-key="X">X</button><button data-key="C">C</button><button data-key="V">V</button><button
+                        data-key="B">B</button><button data-key="N">N</button><button data-key="M">M</button><button
+                        data-key="BACKSPACE" class="wide-key">⌫</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="right-sidebar">
+            <h3>Opponents Tracker</h3>
+            <div id="opponent-grids">
+                <!-- Spawn opponents here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- LEADERBOARD MODAL -->
+    <div id="leaderboard-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-box" id="leaderboard-content">
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>

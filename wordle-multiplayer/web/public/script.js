@@ -13,6 +13,28 @@ let isHost = false;
 let countdownInterval = null;
 let countdownTotal = 45;
 
+// ---- Mobile Tab Switching ----
+function showTab(tab) {
+    const left = document.querySelector('.left-sidebar');
+    const right = document.querySelector('.right-sidebar');
+    const tabs = document.querySelectorAll('.mob-tab');
+    if (!tabs.length) return; // desktop: no tabs rendered
+
+    left.classList.remove('mob-active');
+    right.classList.remove('mob-active');
+    tabs.forEach(t => t.classList.remove('active'));
+
+    if (tab === 'left') {
+        left.classList.add('mob-active');
+        tabs[0].classList.add('active');
+    } else if (tab === 'center') {
+        tabs[1].classList.add('active');
+    } else {
+        right.classList.add('mob-active');
+        tabs[2].classList.add('active');
+    }
+}
+
 // Elements
 const domLoginPanel = document.getElementById('lobby-container');
 const domGamePanel = document.getElementById('game-container');
@@ -227,7 +249,9 @@ function parseServerMessage(msg) {
         gameStarted = true;
         btnStart.disabled = true;
         showToast("Match Started!");
+        showTab('center'); // Auto-switch to Game tab on mobile
     }
+
 
     // --- LEADERBOARD ---
     if (msg.includes("--- Room Leaderboard ---")) {

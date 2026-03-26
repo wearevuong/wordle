@@ -510,8 +510,16 @@ input:focus {
     letter-spacing: 1px;
     text-transform: uppercase;
 }
-.mode-badge.easy { background: #166534; color: #86efac; }
-.mode-badge.hard { background: #7f1d1d; color: #fca5a5; }
+
+.mode-badge.easy {
+    background: #166534;
+    color: #86efac;
+}
+
+.mode-badge.hard {
+    background: #7f1d1d;
+    color: #fca5a5;
+}
 
 /* ---- SECTION LABEL ---- */
 .section-label {
@@ -529,6 +537,7 @@ input:focus {
     display: flex;
     gap: 8px;
 }
+
 .toggle-btn {
     flex: 1;
     padding: 8px 10px;
@@ -541,12 +550,16 @@ input:focus {
     cursor: pointer;
     transition: all 0.2s;
 }
+
 .toggle-btn.active {
     border-color: #538d4e;
     background: #1a3a1a;
     color: #86efac;
 }
-.toggle-btn:hover { opacity: 0.85; }
+
+.toggle-btn:hover {
+    opacity: 0.85;
+}
 
 /* ---- WAITING ROOM / PLAYER LIST ---- */
 #waiting-room {
@@ -555,6 +568,7 @@ input:focus {
     border-radius: 8px;
     padding: 12px;
 }
+
 #player-list {
     list-style: none;
     display: flex;
@@ -562,6 +576,7 @@ input:focus {
     gap: 6px;
     margin-top: 4px;
 }
+
 .player-item {
     display: flex;
     justify-content: space-between;
@@ -573,11 +588,23 @@ input:focus {
     font-weight: 600;
     animation: fadeInPlayer 0.3s ease;
 }
+
 @keyframes fadeInPlayer {
-    from { opacity: 0; transform: translateX(-10px); }
-    to   { opacity: 1; transform: translateX(0); }
+    from {
+        opacity: 0;
+        transform: translateX(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
 }
-.player-name { color: #e5e7eb; }
+
+.player-name {
+    color: #e5e7eb;
+}
+
 .btn-kick {
     padding: 3px 10px;
     border-radius: 4px;
@@ -591,7 +618,10 @@ input:focus {
     letter-spacing: 1px;
     transition: background 0.2s;
 }
-.btn-kick:hover { background: #991b1b; }
+
+.btn-kick:hover {
+    background: #991b1b;
+}
 
 /* ---- COUNTDOWN RING ---- */
 #countdown-display {
@@ -600,21 +630,25 @@ input:focus {
     align-items: center;
     margin-bottom: 12px;
 }
+
 #countdown-ring {
     position: relative;
     width: 80px;
     height: 80px;
 }
+
 .countdown-svg {
     width: 80px;
     height: 80px;
     transform: rotate(-90deg);
 }
+
 .countdown-track {
     fill: none;
     stroke: #333;
     stroke-width: 6;
 }
+
 .countdown-fill {
     fill: none;
     stroke: #6ee7b7;
@@ -624,6 +658,7 @@ input:focus {
     stroke-dashoffset: 0;
     transition: stroke-dashoffset 1s linear, stroke 0.5s;
 }
+
 #countdown-number {
     position: absolute;
     top: 50%;
@@ -644,12 +679,14 @@ input:focus {
     color: #fbbf24;
     letter-spacing: 1px;
 }
+
 .lb-entries {
     display: flex;
     flex-direction: column;
     gap: 10px;
     margin-bottom: 20px;
 }
+
 .lb-row {
     display: flex;
     align-items: center;
@@ -659,12 +696,34 @@ input:focus {
     border-radius: 8px;
     border: 1px solid #333;
 }
-.lb-rank-1 { border-color: #fbbf24; background: #1c1a05; }
-.lb-rank-2 { border-color: #9ca3af; background: #161618; }
-.lb-rank-3 { border-color: #b45309; background: #1a1208; }
 
-.lb-medal { font-size: 20px; flex-shrink: 0; }
-.lb-name  { font-size: 14px; font-weight: 700; color: #e5e7eb; min-width: 70px; }
+.lb-rank-1 {
+    border-color: #fbbf24;
+    background: #1c1a05;
+}
+
+.lb-rank-2 {
+    border-color: #9ca3af;
+    background: #161618;
+}
+
+.lb-rank-3 {
+    border-color: #b45309;
+    background: #1a1208;
+}
+
+.lb-medal {
+    font-size: 20px;
+    flex-shrink: 0;
+}
+
+.lb-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: #e5e7eb;
+    min-width: 70px;
+}
+
 .lb-bar-wrap {
     flex: 1;
     background: #333;
@@ -672,12 +731,14 @@ input:focus {
     height: 8px;
     overflow: hidden;
 }
+
 .lb-bar {
     height: 100%;
     background: linear-gradient(90deg, #538d4e, #86efac);
     border-radius: 4px;
     transition: width 0.8s ease;
 }
+
 .lb-pts {
     font-size: 13px;
     font-weight: 700;
@@ -686,7 +747,277 @@ input:focus {
     min-width: 55px;
     text-align: right;
 }
+
 .lb-close {
     width: 100%;
     margin-top: 10px;
+}
+
+/* =====================================================
+   MOBILE / ANDROID RESPONSIVE
+   ===================================================== */
+
+/* --- Tablet (≤900px) --- */
+@media (max-width: 900px) {
+    #game-container {
+        flex-direction: column;
+        align-items: center;
+        gap: 16px;
+        padding: 0 12px 120px;
+    }
+
+    .left-sidebar,
+    .right-sidebar {
+        width: 100%;
+        max-width: 480px;
+    }
+
+    .center-panel {
+        width: 100%;
+        max-width: 480px;
+    }
+}
+
+/* --- Mobile (≤600px) – primary Android target --- */
+@media (max-width: 600px) {
+
+    header {
+        padding: 10px 0;
+        margin-bottom: 10px;
+    }
+
+    header h1 {
+        font-size: 20px;
+        letter-spacing: 1px;
+    }
+
+    .panel {
+        padding: 16px;
+    }
+
+    .panel h2 {
+        font-size: 18px;
+    }
+
+    #game-container {
+        flex-direction: column;
+        align-items: center;
+        gap: 0;
+        padding: 0 8px 160px;
+        width: 100%;
+    }
+
+    .left-sidebar,
+    .right-sidebar,
+    .center-panel {
+        width: 100%;
+    }
+
+    /* Tab navigation – hide sidebars by default */
+    .left-sidebar {
+        order: 2;
+        display: none;
+    }
+
+    .center-panel {
+        order: 1;
+    }
+
+    .right-sidebar {
+        order: 3;
+        display: none;
+    }
+
+    .left-sidebar.mob-active,
+    .right-sidebar.mob-active {
+        display: flex;
+    }
+
+    /* Mobile tab bar */
+    #mob-tabs {
+        display: flex;
+        width: 100%;
+        background: #1a1a1b;
+        border-bottom: 2px solid #333;
+        order: 0;
+        position: sticky;
+        top: 0;
+        z-index: 50;
+    }
+
+    .mob-tab {
+        flex: 1;
+        padding: 10px 0;
+        background: none;
+        border: none;
+        border-bottom: 3px solid transparent;
+        color: #666;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: color 0.2s, border-bottom 0.2s;
+    }
+
+    .mob-tab.active {
+        color: #86efac;
+        border-bottom: 3px solid #538d4e;
+    }
+
+    .game-header {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .room-badge {
+        font-size: 14px;
+    }
+
+    .mode-badge {
+        font-size: 10px;
+    }
+
+    /* Wordle grid shrinks to fit */
+    #wordle-grid {
+        width: 100%;
+        max-width: 340px;
+        height: auto;
+        gap: 4px;
+        padding: 8px 0;
+        margin: 0 auto 8px;
+    }
+
+    .grid-cell {
+        font-size: 24px;
+        border-width: 2px;
+    }
+
+    /* Countdown smaller */
+    #countdown-ring {
+        width: 60px;
+        height: 60px;
+    }
+
+    .countdown-svg {
+        width: 60px;
+        height: 60px;
+    }
+
+    #countdown-number {
+        font-size: 17px;
+    }
+
+    /* Keyboard – fixed to bottom */
+    #keyboard {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        background: #1a1a1b;
+        border-top: 1px solid #333;
+        padding: 8px 4px 12px;
+        z-index: 100;
+        margin: 0;
+    }
+
+    .keyboard-row {
+        gap: 4px;
+        margin-bottom: 5px;
+    }
+
+    #keyboard button {
+        height: 48px;
+        font-size: 13px;
+        border-radius: 6px;
+        min-width: 0;
+    }
+
+    #keyboard button.wide-key {
+        font-size: 10px;
+    }
+
+    #notification-toast {
+        top: 56px;
+        font-size: 13px;
+        padding: 8px 12px;
+    }
+
+    .hangman-svg {
+        width: 80px;
+        height: 100px;
+    }
+
+    .toggle-group {
+        flex-direction: row;
+    }
+
+    .toggle-btn {
+        font-size: 11px;
+        padding: 7px 6px;
+    }
+
+    .btn {
+        font-size: 14px;
+        padding: 11px;
+    }
+
+    .btn-group {
+        gap: 8px;
+    }
+
+    .btn.small {
+        padding: 10px 14px;
+        font-size: 13px;
+    }
+
+    .player-item {
+        font-size: 13px;
+        padding: 8px 10px;
+    }
+
+    /* Leaderboard modal full-width */
+    .modal-box {
+        width: 92vw;
+        max-width: 360px;
+        padding: 20px 16px;
+    }
+
+    .lb-title {
+        font-size: 18px;
+    }
+
+    .lb-name {
+        min-width: 55px;
+        font-size: 13px;
+    }
+
+    .lb-pts {
+        min-width: 45px;
+        font-size: 12px;
+    }
+
+    /* Opponent cards wrap horizontally */
+    #opponent-grids {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .opponent {
+        flex: 1 1 140px;
+        min-width: 130px;
+    }
+}
+
+/* --- Very small (≤360px) --- */
+@media (max-width: 360px) {
+    #keyboard button {
+        height: 42px;
+        font-size: 11px;
+    }
+
+    .grid-cell {
+        font-size: 20px;
+    }
 }

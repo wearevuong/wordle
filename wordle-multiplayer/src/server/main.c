@@ -18,7 +18,9 @@ unsigned __stdcall client_handler(void* arg) {
                            "/username <name>  : Set your username\r\n"
                            "/create           : Create a private room\r\n"
                            "/join <code>      : Join a room\r\n"
-                           "/start            : Start game (Host only/Anyone in room)\r\n"
+                           "/mode easy|hard   : Set difficulty (45s/30s) - host only\r\n"
+                           "/kick <username>  : Kick player - host only\r\n"
+                           "/start            : Start game\r\n"
                            "/top              : High scores\r\n"
                            "/quit             : Exit");
     
@@ -29,7 +31,6 @@ unsigned __stdcall client_handler(void* arg) {
             break;
         }
         
-        // Remove trailing \r or \n
         buffer[strcspn(buffer, "\r\n")] = '\0';
         printf("Received from %s: %s\n", client->username, buffer);
         
@@ -43,10 +44,17 @@ unsigned __stdcall client_handler(void* arg) {
         else if (strcmp(buffer, "/create") == 0) {
             if (current_room) leave_room(current_room, client);
             current_room = create_room();
-            join_room(current_room, client);
-            char msg[128];
-            sprintf(msg, "Room created. Room code: %s", current_room->room_code);
-            send_msg(client->sock, msg);
+            if (current_room) {
+                // Creator is always host (index 0)
+                join_room(current_room, client);
+                current_room->host_index = 0;
+                char msg[256];
+                sprintf(msg, "Room created. Room code: %s\nYou are the HOST. Use /mode easy|hard and /kick <name>.", current_room->room_code);
+                send_msg(client->sock, msg);
+                broadcast_players_update(current_room);
+            } else {
+                send_msg(client->sock, "Could not create room (server full).");
+            }
         }
         else if (strncmp(buffer, "/join ", 6) == 0) {
             char* code = buffer + 6;
@@ -68,6 +76,38 @@ unsigned __stdcall client_handler(void* arg) {
                 send_msg(client->sock, "Room not found.");
             }
         }
+        else if (strncmp(buffer, "/kick ", 6) == 0) {
+            char* target = buffer + 6;
+            if (current_room) {
+                kick_from_room(current_room, target, client);
+            } else {
+                send_msg(client->sock, "You must be in a room to kick players.");
+            }
+        }
+        else if (strncmp(buffer, "/mode ", 6) == 0) {
+            char* mode_str = buffer + 6;
+            if (current_room) {
+                // Only host can change mode
+                EnterCriticalSection(&current_room->lock);
+                bool is_host = (current_room->num_clients > 0 &&
+                                current_room->clients[current_room->host_index] == client);
+                LeaveCriticalSection(&current_room->lock);
+
+                if (!is_host) {
+                    send_msg(client->sock, "Only the host can change game mode.");
+                } else if (_stricmp(mode_str, "hard") == 0) {
+                    current_room->difficulty = DIFFICULTY_HARD;
+                    broadcast_to_room(current_room, "MODE:hard|Game mode set to HARD (30s per round) by host.", NULL);
+                } else if (_stricmp(mode_str, "easy") == 0) {
+                    current_room->difficulty = DIFFICULTY_EASY;
+                    broadcast_to_room(current_room, "MODE:easy|Game mode set to EASY (45s per round) by host.", NULL);
+                } else {
+                    send_msg(client->sock, "Usage: /mode easy|hard");
+                }
+            } else {
+                send_msg(client->sock, "You must be in a room to change mode.");
+            }
+        }
         else if (strcmp(buffer, "/start") == 0) {
             if (current_room) {
                 start_game(current_room);
@@ -84,7 +124,6 @@ unsigned __stdcall client_handler(void* arg) {
             break;
         }
         else {
-            // It's a guess or a chat
             if (current_room && current_room->game_in_progress) {
                 if (strlen(buffer) == WORD_LEN) {
                     EnterCriticalSection(&current_room->lock);
@@ -95,8 +134,6 @@ unsigned __stdcall client_handler(void* arg) {
                         client->current_guess[WORD_LEN] = '\0';
                         client->has_guessed = true;
                         current_room->guess_count++;
-                        
-                        // Notify wait condition
                         WakeAllConditionVariable(&current_room->guess_cond);
                         
                         char hint_msg[128];
@@ -110,17 +147,17 @@ unsigned __stdcall client_handler(void* arg) {
                     send_msg(client->sock, "Guess must be exactly 5 characters.");
                 }
             } else {
-                // Not in game, normal echo chat
                 char reply[MAX_PAYLOAD_SIZE];
                 sprintf(reply, "[Global Chat] %s: %s", client->username, buffer);
-                // Broadcast to global would require global list,
-                // for simplicity, just echo
                 send_msg(client->sock, reply);
             }
         }
     }
     
     if (current_room) {
+        char leave_msg[128];
+        sprintf(leave_msg, "%s left the room.", client->username);
+        broadcast_to_room(current_room, leave_msg, client);
         leave_room(current_room, client);
     }
     
@@ -136,7 +173,6 @@ int main(int argc, char* argv[]) {
         port = atoi(argv[1]);
     }
     
-    // Better seeding
     srand((unsigned int)time(NULL) ^ (unsigned int)GetCurrentProcessId());
     
     if (init_winsock() < 0) {
@@ -154,6 +190,10 @@ int main(int argc, char* argv[]) {
         return 1;
     }
     
+    // Allow reuse of address
+    int opt = 1;
+    setsockopt(server_socket, SOL_SOCKET, SO_REUSEADDR, (char*)&opt, sizeof(opt));
+
     struct sockaddr_in server_addr;
     server_addr.sin_family = AF_INET;
     server_addr.sin_addr.s_addr = INADDR_ANY;
@@ -172,9 +212,6 @@ int main(int argc, char* argv[]) {
     
     struct sockaddr_in client_addr;
     int c = sizeof(struct sockaddr_in);
-    
-    // Ensure room manager can be initialized
-    // init_room_manager();  // Called lazily
     
     while (1) {
         SOCKET client_sock = accept(server_socket, (struct sockaddr*)&client_addr, &c);

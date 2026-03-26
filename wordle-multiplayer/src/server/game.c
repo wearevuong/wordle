@@ -23,9 +23,8 @@ void load_words(void) {
     if (file) {
         char buffer[256];
         while (fgets(buffer, sizeof(buffer), file)) {
-            buffer[strcspn(buffer, "\r\n")] = '\0'; // Remove newline
+            buffer[strcspn(buffer, "\r\n")] = '\0';
             if (strlen(buffer) == WORD_LEN) {
-                // To uppercase
                 for(int i = 0; buffer[i]; i++){
                     if(buffer[i] >= 'a' && buffer[i] <= 'z') buffer[i] -= 32;
                 }
@@ -80,8 +79,14 @@ unsigned __stdcall game_thread(void* arg) {
     srand((unsigned int)time(NULL) ^ (unsigned int)GetCurrentThreadId());
     Room* room = (Room*)arg;
     
+    // Determine timeout from difficulty
+    DWORD timeout_ms = (room->difficulty == DIFFICULTY_HARD) ? 30000 : 45000;
+    int timeout_sec  = (room->difficulty == DIFFICULTY_HARD) ? 30 : 45;
+
     char msg[1024];
-    sprintf(msg, "\n--- Game starting! Word length: %d. %d attempts. ---\n", WORD_LEN, room->total_rounds);
+    sprintf(msg, "\n--- Game starting! Word length: %d. %d attempts. Mode: %s ---\n",
+            WORD_LEN, room->total_rounds,
+            room->difficulty == DIFFICULTY_HARD ? "HARD (30s)" : "EASY (45s)");
     broadcast_to_room(room, msg, NULL);
     
     strcpy(room->secret_word, get_random_word());
@@ -91,8 +96,13 @@ unsigned __stdcall game_thread(void* arg) {
     bool game_won = false;
     
     while (room->current_round <= room->total_rounds && room->game_in_progress) {
-        sprintf(msg, "--- Round %d starts! You have 30 seconds to guess ---", room->current_round);
+        sprintf(msg, "--- Round %d starts! ---", room->current_round);
         broadcast_to_room(room, msg, NULL);
+
+        // Broadcast countdown so frontend can start timer
+        char countdown_msg[64];
+        sprintf(countdown_msg, "COUNTDOWN:%d", timeout_sec);
+        broadcast_to_room(room, countdown_msg, NULL);
         
         // Reset guesses
         EnterCriticalSection(&room->lock);
@@ -102,11 +112,10 @@ unsigned __stdcall game_thread(void* arg) {
         }
         LeaveCriticalSection(&room->lock);
         
-        // Wait for all clients to guess or timeout (30s)
-        DWORD timeout = 30000; 
+        // Wait for all clients to guess or timeout
         EnterCriticalSection(&room->lock);
         while (room->guess_count < room->num_clients && room->num_clients > 0) {
-            BOOL res = SleepConditionVariableCS(&room->guess_cond, &room->lock, timeout);
+            BOOL res = SleepConditionVariableCS(&room->guess_cond, &room->lock, timeout_ms);
             if (!res) {
                 // Timeout
                 break;
@@ -159,7 +168,7 @@ unsigned __stdcall game_thread(void* arg) {
         broadcast_to_room(room, msg, NULL);
     }
     
-    // Broadcast Leaderboard of room
+    // Broadcast Room Leaderboard
     char lb[4096] = "\n--- Room Leaderboard ---\n";
     EnterCriticalSection(&room->lock);
     for(int i=0; i<room->num_clients; i++){

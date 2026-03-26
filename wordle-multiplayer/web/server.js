@@ -1,64 +1,73 @@
-const net = require('net');
+const express = require('express');
+const http = require('http');
 const WebSocket = require('ws');
-const WS_PORT = 3000;
-const TCP_PORT = 8080;
-const TCP_HOST = '127.0.0.1';
+const net = require('net');
+const path = require('path');
 
-//Khởi tạo WebSocket Server (Lắng nghe Client/Frontend)
-const wss = new WebSocket.Server({ port: WS_PORT }, () => {
-    console.log(`[WebSocket] Server đang chạy ở cổng ${WS_PORT}`);
-});
+const app = express();
+app.use(express.static(path.join(__dirname, 'public')));
+const server = http.createServer(app);
+const wss = new WebSocket.Server({ server });
 
-//Khởi tạo TCP Client (Kết nối tới Server C)
-const tcpClient = new net.Socket();
-
-function connectToTCP() {
-    tcpClient.connect(TCP_PORT, TCP_HOST, () => {
-        console.log(`[TCP] Đã kết nối thành công tới Backend C tại cổng ${TCP_PORT}`);
-    });
-}
-
-connectToTCP();
-
-//Luồng TCP -> Websocket (Backend C trả kết quả Wordle về Frontend)
-tcpClient.on('data', (data) => {
-    const message = data.toString().trim();
-    console.log(`[Backend C gửi]: ${message}`);
-
-    // Bắn kết quả này cho tất cả Frontend đang mở
-    wss.clients.forEach((client) => {
-        if (client.readyState === WebSocket.OPEN) {
-            client.send(message);
-        }
-    });
-});
-
-tcpClient.on('error', (err) => {
-    console.error('[TCP Lỗi]:', err.message);
-});
-
-tcpClient.on('close', () => {
-    console.log('[TCP] Mất kết nối tới Backend. Thử lại sau 3 giây...');
-    setTimeout(connectToTCP, 3000);
-});
-
-//Luồng websocket -> TCP (Nhận từ người chơi gửi xuống Backend C)
 wss.on('connection', (ws) => {
-    console.log('[WebSocket] Một Client (Frontend) vừa kết nối!');
+    console.log('New web client connected via WebSocket');
 
-    ws.on('message', (message) => {
-        const clientMsg = message.toString().trim();
-        console.log(`[Frontend gửi]: ${clientMsg}`);
+    // Connect to C Server
+    const tcpClient = new net.Socket();
+    tcpClient.connect(8888, '127.0.0.1', () => {
+        console.log('Connected to locally running C Server (Port 8888)');
+    });
 
-        // Đẩy thẳng data từ Frontend xuống Backend C qua TCP (thêm \n để C dễ đọc)
-        if (!tcpClient.destroyed) {
-            tcpClient.write(clientMsg + '\n');
-        } else {
-            console.log('[Lỗi] Không thể gửi vì TCP Backend đang sập.');
+    let buffer = Buffer.alloc(0);
+
+    // Xử lý data từ C Server (TCP) gửi về Web
+    tcpClient.on('data', (data) => {
+        buffer = Buffer.concat([buffer, data]);
+
+        // Decode Length-Prefixed Framing (4 bytes Big Endian)
+        while (buffer.length >= 4) {
+            const msgLength = buffer.readUInt32BE(0);
+            if (buffer.length >= 4 + msgLength) {
+                const payload = buffer.toString('utf8', 4, 4 + msgLength);
+                buffer = buffer.slice(4 + msgLength);
+                ws.send(payload); // Push cho giao diện Web (Frontend)
+            } else {
+                break; // Chờ nhận thêm data bị phân mảnh
+            }
         }
+    });
+
+    tcpClient.on('error', (err) => {
+        console.error('TCP Connection Error:', err);
+        ws.send('[SYSTEM] Lỗi kết nối tới Server C++. Hãy chắc chắn bạn đã chạy wordle_server.exe!');
+    });
+
+    tcpClient.on('close', () => {
+        console.log('TCP Connection closed');
+        ws.close();
+    });
+
+    // Nhận Input từ Giao diện Web (Chat hoặc Đoán từ)
+    ws.on('message', (message) => {
+        const msgStr = message.toString();
+        const payloadBuffer = Buffer.from(msgStr, 'utf8');
+
+        // Encode Length-Prefixed Framing (4 Bytes Big Endian)
+        const lengthBuffer = Buffer.alloc(4);
+        lengthBuffer.writeUInt32BE(payloadBuffer.length, 0);
+
+        // Bơm data xuống C Server
+        tcpClient.write(lengthBuffer);
+        tcpClient.write(payloadBuffer);
     });
 
     ws.on('close', () => {
-        console.log('[WebSocket] Client đã ngắt kết nối.');
+        tcpClient.destroy();
     });
+});
+
+const PORT = 3000;
+server.listen(PORT, () => {
+    console.log(`Wordle Web Interface đang chạy tại: http://localhost:${PORT}`);
+    console.log(`Node.js Middleware đang lắng nghe WebSocket liên kết với C Server Port 8888.`);
 });

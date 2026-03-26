@@ -12,6 +12,9 @@
 #define WORD_LEN 5
 #define MAX_ATTEMPTS 6
 
+#define DIFFICULTY_EASY 0
+#define DIFFICULTY_HARD 1
+
 typedef struct {
     SOCKET sock;
     char username[MAX_USERNAME];
@@ -25,12 +28,14 @@ typedef struct {
     char room_code[ROOM_CODE_LEN + 1];
     Client* clients[MAX_CLIENTS];
     int num_clients;
+    int host_index;        // index of the host in clients[]
     CRITICAL_SECTION lock;
     
     bool game_in_progress;
     char secret_word[WORD_LEN + 1];
     int current_round;
     int total_rounds;
+    int difficulty;        // 0=EASY(45s), 1=HARD(30s)
     
     CONDITION_VARIABLE guess_cond;
     int guess_count;
@@ -50,6 +55,8 @@ Room* find_room(const char* code);
 bool join_room(Room* room, Client* client);
 void leave_room(Room* room, Client* client);
 void start_game(Room* room);
+void kick_from_room(Room* room, const char* target_username, Client* requester);
+void broadcast_players_update(Room* room);
 
 // Scoreboard
 void init_scores(void);

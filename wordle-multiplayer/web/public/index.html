@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Wordle Multiplayer</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
@@ -30,6 +30,13 @@
 
     <!-- MAIN GAME LAYOUT -->
     <div id="game-container" style="display: none;">
+
+        <!-- Mobile Tab Bar (CSS hides it on desktop) -->
+        <div id="mob-tabs">
+            <button class="mob-tab active" onclick="showTab('left')">🏠 Room</button>
+            <button class="mob-tab" onclick="showTab('center')">🎮 Game</button>
+            <button class="mob-tab" onclick="showTab('right')">👥 Rivals</button>
+        </div>
 
         <div class="left-sidebar">
             <div class="game-header">
@@ -81,8 +88,8 @@
             <div id="countdown-display" style="display:none;">
                 <div id="countdown-ring">
                     <svg viewBox="0 0 80 80" class="countdown-svg">
-                        <circle cx="40" cy="40" r="34" class="countdown-track"/>
-                        <circle cx="40" cy="40" r="34" class="countdown-fill" id="countdown-arc"/>
+                        <circle cx="40" cy="40" r="34" class="countdown-track" />
+                        <circle cx="40" cy="40" r="34" class="countdown-fill" id="countdown-arc" />
                     </svg>
                     <span id="countdown-number">45</span>
                 </div>
